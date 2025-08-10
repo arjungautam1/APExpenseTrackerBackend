@@ -4,7 +4,7 @@ export interface IInvestment extends Document {
     name: string;
     type: 'stocks' | 'mutual_funds' | 'crypto' | 'real_estate' | 'other';
     amountInvested: number;
-    currentValue: number;
+    currentValue?: number;
     purchaseDate: Date;
     quantity?: number;
     symbol?: string;

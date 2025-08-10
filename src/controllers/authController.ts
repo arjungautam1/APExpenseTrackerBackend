@@ -151,6 +151,14 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       );
     }
 
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to create or find user'
+      });
+      return;
+    }
+
     res.json({
       success: true,
       data: {

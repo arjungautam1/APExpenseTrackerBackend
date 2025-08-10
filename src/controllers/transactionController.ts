@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Transaction, { ITransaction } from '../models/Transaction';
 import Category from '../models/Category';
+import { Investment } from '../models/Investment';
 import mongoose from 'mongoose';
 
 // @desc    Get all transactions for user
@@ -148,6 +149,26 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
 
     // Populate category details
     await transaction.populate('categoryId', 'name type icon color');
+
+    // Auto-create investment if transaction is from Investment category
+    if (category.name === 'Investment' && type === 'expense') {
+      try {
+        const investmentData = {
+          userId: req.user?.id,
+          name: description || 'Investment from transaction',
+          type: 'other' as const,
+          amountInvested: parseFloat(amount),
+          purchaseDate: date ? new Date(date) : new Date(),
+          platform: 'From Quick Add'
+        };
+
+        await Investment.create(investmentData);
+        console.log('Auto-created investment for transaction:', transaction._id);
+      } catch (investmentError) {
+        console.error('Failed to auto-create investment:', investmentError);
+        // Don't fail the transaction if investment creation fails
+      }
+    }
 
     res.status(201).json({
       success: true,

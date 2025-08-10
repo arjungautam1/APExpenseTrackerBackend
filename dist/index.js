@@ -20,6 +20,7 @@ const investments_1 = __importDefault(require("./routes/investments"));
 const loans_1 = __importDefault(require("./routes/loans"));
 const transfers_1 = __importDefault(require("./routes/transfers"));
 const users_1 = __importDefault(require("./routes/users"));
+const ai_1 = __importDefault(require("./routes/ai"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -60,6 +61,7 @@ app.use('/api/transfers', transfers_1.default);
 // Settings & users endpoints
 app.use('/api/users', users_1.default);
 app.use('/api/settings', users_1.default);
+app.use('/api/ai', ai_1.default);
 // TODO: Add remaining route handlers
 // app.use('/api/users', userRoutes);
 // app.use('/api/loans', loanRoutes);

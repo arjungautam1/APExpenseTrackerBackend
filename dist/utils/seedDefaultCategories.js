@@ -16,6 +16,7 @@ const seedDefaultCategories = async () => {
         const defaultCategories = [
             // Expense Categories
             { name: 'Food & Dining', type: 'expense', icon: 'utensils', color: '#EF4444' },
+            { name: 'Groceries', type: 'expense', icon: 'shopping-bag', color: '#10B981' },
             { name: 'Transportation', type: 'expense', icon: 'car', color: '#3B82F6' },
             { name: 'Bills & Utilities', type: 'expense', icon: 'zap', color: '#F59E0B' },
             { name: 'Entertainment', type: 'expense', icon: 'film', color: '#8B5CF6' },
@@ -26,6 +27,7 @@ const seedDefaultCategories = async () => {
             { name: 'Personal Care', type: 'expense', icon: 'user', color: '#EC4899' },
             { name: 'Home & Garden', type: 'expense', icon: 'home', color: '#84CC16' },
             { name: 'Gifts & Donations', type: 'expense', icon: 'gift', color: '#F97316' },
+            { name: 'Investment', type: 'expense', icon: 'trending-up', color: '#6366F1' },
             { name: 'Other Expenses', type: 'expense', icon: 'more-horizontal', color: '#6B7280' },
             // Income Categories
             { name: 'Salary', type: 'income', icon: 'briefcase', color: '#10B981' },

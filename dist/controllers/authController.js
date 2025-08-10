@@ -139,6 +139,13 @@ const getMe = async (req, res) => {
                 },
             }, { upsert: true, new: true, setDefaultsOnInsert: true });
         }
+        if (!user) {
+            res.status(400).json({
+                success: false,
+                message: 'Failed to create or find user'
+            });
+            return;
+        }
         res.json({
             success: true,
             data: {

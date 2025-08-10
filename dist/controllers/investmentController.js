@@ -29,10 +29,10 @@ const getInvestments = async (req, res) => {
         // Calculate virtual fields manually for lean queries
         const investmentsWithCalculations = investments.map(investment => ({
             ...investment,
-            gainLoss: investment.currentValue - investment.amountInvested,
-            gainLossPercentage: investment.amountInvested === 0
-                ? 0
-                : ((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100
+            gainLoss: investment.currentValue ? investment.currentValue - investment.amountInvested : 0,
+            gainLossPercentage: investment.currentValue && investment.amountInvested > 0
+                ? ((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100
+                : 0
         }));
         const pagination = {
             page: Number(page),
@@ -78,10 +78,10 @@ const getInvestment = async (req, res) => {
         // Calculate virtual fields manually
         const investmentWithCalculations = {
             ...investment,
-            gainLoss: investment.currentValue - investment.amountInvested,
-            gainLossPercentage: investment.amountInvested === 0
-                ? 0
-                : ((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100
+            gainLoss: investment.currentValue ? investment.currentValue - investment.amountInvested : 0,
+            gainLossPercentage: investment.currentValue && investment.amountInvested > 0
+                ? ((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100
+                : 0
         };
         res.status(200).json({
             success: true,
@@ -227,7 +227,7 @@ const getInvestmentStats = async (req, res) => {
         const userId = req.user.id;
         const investments = await Investment_1.Investment.find({ userId }).lean();
         const totalInvested = investments.reduce((sum, inv) => sum + inv.amountInvested, 0);
-        const totalCurrentValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+        const totalCurrentValue = investments.reduce((sum, inv) => sum + (inv.currentValue || inv.amountInvested), 0);
         const totalGainLoss = totalCurrentValue - totalInvested;
         const totalGainLossPercentage = totalInvested === 0 ? 0 : (totalGainLoss / totalInvested) * 100;
         // Group by investment type
@@ -241,7 +241,7 @@ const getInvestmentStats = async (req, res) => {
             }
             acc[inv.type].count++;
             acc[inv.type].totalInvested += inv.amountInvested;
-            acc[inv.type].totalCurrentValue += inv.currentValue;
+            acc[inv.type].totalCurrentValue += (inv.currentValue || inv.amountInvested);
             return acc;
         }, {});
         // Calculate gains/losses by type
@@ -262,16 +262,16 @@ const getInvestmentStats = async (req, res) => {
             topPerforming: investments
                 .map(inv => ({
                 ...inv,
-                gainLoss: inv.currentValue - inv.amountInvested,
-                gainLossPercentage: inv.amountInvested === 0 ? 0 : ((inv.currentValue - inv.amountInvested) / inv.amountInvested) * 100
+                gainLoss: inv.currentValue ? inv.currentValue - inv.amountInvested : 0,
+                gainLossPercentage: inv.currentValue && inv.amountInvested > 0 ? ((inv.currentValue - inv.amountInvested) / inv.amountInvested) * 100 : 0
             }))
                 .sort((a, b) => b.gainLossPercentage - a.gainLossPercentage)
                 .slice(0, 5),
             worstPerforming: investments
                 .map(inv => ({
                 ...inv,
-                gainLoss: inv.currentValue - inv.amountInvested,
-                gainLossPercentage: inv.amountInvested === 0 ? 0 : ((inv.currentValue - inv.amountInvested) / inv.amountInvested) * 100
+                gainLoss: inv.currentValue ? inv.currentValue - inv.amountInvested : 0,
+                gainLossPercentage: inv.currentValue && inv.amountInvested > 0 ? ((inv.currentValue - inv.amountInvested) / inv.amountInvested) * 100 : 0
             }))
                 .sort((a, b) => a.gainLossPercentage - b.gainLossPercentage)
                 .slice(0, 5)

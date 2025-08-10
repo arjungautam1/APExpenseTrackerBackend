@@ -23,6 +23,7 @@ export const seedDefaultCategories = async (): Promise<void> => {
       { name: 'Personal Care', type: 'expense', icon: 'user', color: '#EC4899' },
       { name: 'Home & Garden', type: 'expense', icon: 'home', color: '#84CC16' },
       { name: 'Gifts & Donations', type: 'expense', icon: 'gift', color: '#F97316' },
+      { name: 'Investment', type: 'expense', icon: 'trending-up', color: '#6366F1' },
       { name: 'Other Expenses', type: 'expense', icon: 'more-horizontal', color: '#6B7280' },
 
       // Income Categories

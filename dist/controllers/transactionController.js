@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getExpenseBreakdown = exports.getTransactionStats = exports.deleteTransaction = exports.updateTransaction = exports.createTransaction = exports.getTransaction = exports.getTransactions = void 0;
 const Transaction_1 = __importDefault(require("../models/Transaction"));
 const Category_1 = __importDefault(require("../models/Category"));
+const Investment_1 = require("../models/Investment");
 const mongoose_1 = __importDefault(require("mongoose"));
 // @desc    Get all transactions for user
 // @route   GET /api/transactions
@@ -97,6 +98,7 @@ const createTransaction = async (req, res) => {
         console.log('Creating transaction with data:', req.body);
         console.log('User ID:', req.user?.id);
         const { amount, type, categoryId, description, date, location, tags } = req.body;
+        console.log('Validating category:', categoryId);
         // Validate category exists and belongs to user or is default
         const category = await Category_1.default.findOne({
             _id: categoryId,
@@ -105,6 +107,7 @@ const createTransaction = async (req, res) => {
                 { isDefault: true }
             ]
         });
+        console.log('Found category:', category);
         if (!category) {
             res.status(400).json({
                 success: false,
@@ -114,13 +117,14 @@ const createTransaction = async (req, res) => {
         }
         // Validate transaction type matches category type
         if (category.type !== type) {
+            console.log('Type mismatch:', { transactionType: type, categoryType: category.type });
             res.status(400).json({
                 success: false,
                 message: `Transaction type '${type}' does not match category type '${category.type}'`
             });
             return;
         }
-        const transaction = await Transaction_1.default.create({
+        const transactionData = {
             userId: req.user?.id,
             amount: parseFloat(amount),
             type,
@@ -129,9 +133,30 @@ const createTransaction = async (req, res) => {
             date: date ? new Date(date) : new Date(),
             location,
             tags: tags || []
-        });
+        };
+        console.log('Creating transaction with data:', transactionData);
+        const transaction = await Transaction_1.default.create(transactionData);
         // Populate category details
         await transaction.populate('categoryId', 'name type icon color');
+        // Auto-create investment if transaction is from Investment category
+        if (category.name === 'Investment' && type === 'expense') {
+            try {
+                const investmentData = {
+                    userId: req.user?.id,
+                    name: description || 'Investment from transaction',
+                    type: 'other',
+                    amountInvested: parseFloat(amount),
+                    purchaseDate: date ? new Date(date) : new Date(),
+                    platform: 'From Quick Add'
+                };
+                await Investment_1.Investment.create(investmentData);
+                console.log('Auto-created investment for transaction:', transaction._id);
+            }
+            catch (investmentError) {
+                console.error('Failed to auto-create investment:', investmentError);
+                // Don't fail the transaction if investment creation fails
+            }
+        }
         res.status(201).json({
             success: true,
             message: 'Transaction created successfully',
@@ -139,6 +164,7 @@ const createTransaction = async (req, res) => {
         });
     }
     catch (error) {
+        console.error('Transaction creation error:', error);
         res.status(400).json({
             success: false,
             message: error.message || 'Failed to create transaction'

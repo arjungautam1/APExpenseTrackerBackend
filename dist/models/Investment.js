@@ -63,7 +63,6 @@ const investmentSchema = new mongoose_1.Schema({
     },
     currentValue: {
         type: Number,
-        required: [true, 'Current value is required'],
         min: [0, 'Current value must be positive']
     },
     purchaseDate: {
@@ -92,10 +91,12 @@ investmentSchema.index({ userId: 1, createdAt: -1 });
 investmentSchema.index({ userId: 1, type: 1 });
 // Virtual for gain/loss calculation
 investmentSchema.virtual('gainLoss').get(function () {
+    if (!this.currentValue)
+        return 0;
     return this.currentValue - this.amountInvested;
 });
 investmentSchema.virtual('gainLossPercentage').get(function () {
-    if (this.amountInvested === 0)
+    if (!this.currentValue || this.amountInvested === 0)
         return 0;
     return ((this.currentValue - this.amountInvested) / this.amountInvested) * 100;
 });

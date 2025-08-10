@@ -5,7 +5,7 @@ export interface IInvestment extends Document {
   name: string;
   type: 'stocks' | 'mutual_funds' | 'crypto' | 'real_estate' | 'other';
   amountInvested: number;
-  currentValue: number;
+  currentValue?: number;
   purchaseDate: Date;
   quantity?: number;
   symbol?: string;
@@ -42,7 +42,6 @@ const investmentSchema = new Schema<IInvestment>({
   },
   currentValue: {
     type: Number,
-    required: [true, 'Current value is required'],
     min: [0, 'Current value must be positive']
   },
   purchaseDate: {
@@ -73,11 +72,12 @@ investmentSchema.index({ userId: 1, type: 1 });
 
 // Virtual for gain/loss calculation
 investmentSchema.virtual('gainLoss').get(function(this: IInvestment) {
+  if (!this.currentValue) return 0;
   return this.currentValue - this.amountInvested;
 });
 
 investmentSchema.virtual('gainLossPercentage').get(function(this: IInvestment) {
-  if (this.amountInvested === 0) return 0;
+  if (!this.currentValue || this.amountInvested === 0) return 0;
   return ((this.currentValue - this.amountInvested) / this.amountInvested) * 100;
 });
 
