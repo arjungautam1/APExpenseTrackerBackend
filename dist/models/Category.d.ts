@@ -1,7 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 export interface ICategory extends Document {
     name: string;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'investment';
     icon: string;
     color: string;
     userId?: mongoose.Types.ObjectId;

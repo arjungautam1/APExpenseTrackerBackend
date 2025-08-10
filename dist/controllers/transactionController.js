@@ -22,7 +22,7 @@ const getTransactions = async (req, res) => {
         const skip = (page - 1) * limit;
         // Build query
         const query = { userId: req.user?.id };
-        if (type && ['income', 'expense', 'transfer'].includes(type)) {
+        if (type && ['income', 'expense', 'transfer', 'investment'].includes(type)) {
             query.type = type;
         }
         if (categoryId && mongoose_1.default.Types.ObjectId.isValid(categoryId)) {
@@ -139,7 +139,7 @@ const createTransaction = async (req, res) => {
         // Populate category details
         await transaction.populate('categoryId', 'name type icon color');
         // Auto-create investment if transaction is from Investment category
-        if (category.name === 'Investment' && type === 'expense') {
+        if (category.name === 'Investment' && type === 'investment') {
             try {
                 const investmentData = {
                     userId: req.user?.id,
@@ -371,14 +371,17 @@ const getExpenseBreakdown = async (req, res) => {
                 }
             },
             {
-                $unwind: '$category'
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
             },
             {
                 $group: {
-                    _id: '$categoryId',
-                    categoryName: { $first: '$category.name' },
-                    categoryIcon: { $first: '$category.icon' },
-                    categoryColor: { $first: '$category.color' },
+                    _id: { $ifNull: ['$categoryId', 'unknown'] },
+                    categoryName: { $first: { $ifNull: ['$category.name', 'Other Expenses'] } },
+                    categoryIcon: { $first: { $ifNull: ['$category.icon', 'more-horizontal'] } },
+                    categoryColor: { $first: { $ifNull: ['$category.color', '#6B7280'] } },
                     totalAmount: { $sum: '$amount' },
                     transactionCount: { $sum: 1 },
                     avgAmount: { $avg: '$amount' },

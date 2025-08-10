@@ -54,7 +54,7 @@ const TransactionSchema = new mongoose_1.Schema({
     type: {
         type: String,
         required: [true, 'Transaction type is required'],
-        enum: ['income', 'expense', 'transfer']
+        enum: ['income', 'expense', 'transfer', 'investment']
     },
     categoryId: {
         type: mongoose_1.default.Schema.Types.ObjectId,

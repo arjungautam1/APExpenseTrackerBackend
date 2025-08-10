@@ -23,13 +23,14 @@ export const seedDefaultCategories = async (): Promise<void> => {
       { name: 'Personal Care', type: 'expense', icon: 'user', color: '#EC4899' },
       { name: 'Home & Garden', type: 'expense', icon: 'home', color: '#84CC16' },
       { name: 'Gifts & Donations', type: 'expense', icon: 'gift', color: '#F97316' },
-      { name: 'Investment', type: 'expense', icon: 'trending-up', color: '#6366F1' },
+      { name: 'Investment', type: 'investment', icon: 'trending-up', color: '#8B5CF6' },
       { name: 'Other Expenses', type: 'expense', icon: 'more-horizontal', color: '#6B7280' },
 
       // Income Categories
       { name: 'Salary', type: 'income', icon: 'briefcase', color: '#10B981' },
       { name: 'Freelance', type: 'income', icon: 'laptop', color: '#3B82F6' },
       { name: 'Investment Returns', type: 'income', icon: 'trending-up', color: '#8B5CF6' },
+      { name: 'Investment Transaction', type: 'investment', icon: 'trending-up', color: '#8B5CF6' },
       { name: 'Business Income', type: 'income', icon: 'building', color: '#F59E0B' },
       { name: 'Rental Income', type: 'income', icon: 'home', color: '#06B6D4' },
       { name: 'Bonus', type: 'income', icon: 'award', color: '#EF4444' },

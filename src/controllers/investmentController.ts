@@ -115,6 +115,14 @@ export const getInvestment = async (req: Request, res: Response) => {
 export const createInvestment = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    
+    // Debug logging
+    console.log('=== Investment Creation Debug ===');
+    console.log('Raw request body:', JSON.stringify(req.body, null, 2));
+    console.log('currentValue specifically:', req.body.currentValue);
+    console.log('currentValue type:', typeof req.body.currentValue);
+    console.log('===============================');
+    
     const {
       name,
       type,
@@ -264,8 +272,18 @@ export const deleteInvestment = async (req: Request, res: Response) => {
 export const getInvestmentStats = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const { startDate, endDate } = req.query;
 
-    const investments = await Investment.find({ userId }).lean();
+    // Build query with date filters
+    const query: any = { userId };
+    
+    if (startDate || endDate) {
+      query.purchaseDate = {};
+      if (startDate) query.purchaseDate.$gte = new Date(startDate as string);
+      if (endDate) query.purchaseDate.$lte = new Date(endDate as string);
+    }
+
+    const investments = await Investment.find(query).lean();
 
     const totalInvested = investments.reduce((sum, inv) => sum + inv.amountInvested, 0);
     const totalCurrentValue = investments.reduce((sum, inv) => sum + (inv.currentValue || inv.amountInvested), 0);

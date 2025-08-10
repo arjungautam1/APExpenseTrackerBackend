@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ITransaction extends Document {
   userId: mongoose.Types.ObjectId;
   amount: number;
-  type: 'income' | 'expense' | 'transfer';
+  type: 'income' | 'expense' | 'transfer' | 'investment';
   categoryId: mongoose.Types.ObjectId;
   description?: string;
   date: Date;
@@ -34,7 +34,7 @@ const TransactionSchema: Schema = new Schema({
   type: {
     type: String,
     required: [true, 'Transaction type is required'],
-    enum: ['income', 'expense', 'transfer']
+    enum: ['income', 'expense', 'transfer', 'investment']
   },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,

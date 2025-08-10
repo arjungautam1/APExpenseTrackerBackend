@@ -2,7 +2,7 @@ import mongoose, { Document } from 'mongoose';
 export interface ITransaction extends Document {
     userId: mongoose.Types.ObjectId;
     amount: number;
-    type: 'income' | 'expense' | 'transfer';
+    type: 'income' | 'expense' | 'transfer' | 'investment';
     categoryId: mongoose.Types.ObjectId;
     description?: string;
     date: Date;

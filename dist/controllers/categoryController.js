@@ -18,7 +18,7 @@ const getCategories = async (req, res) => {
                 { isDefault: true }
             ]
         };
-        if (type && ['income', 'expense'].includes(type)) {
+        if (type && ['income', 'expense', 'investment'].includes(type)) {
             query.type = type;
         }
         const categories = await Category_1.default.find(query).sort({ name: 1 });

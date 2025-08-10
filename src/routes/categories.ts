@@ -22,8 +22,8 @@ const createCategoryValidation = [
     .isLength({ min: 1, max: 50 })
     .withMessage('Category name must be between 1 and 50 characters'),
   body('type')
-    .isIn(['income', 'expense'])
-    .withMessage('Type must be income or expense'),
+    .isIn(['income', 'expense', 'investment'])
+    .withMessage('Type must be income, expense, or investment'),
   body('icon')
     .optional()
     .trim()
@@ -65,8 +65,8 @@ const updateCategoryValidation = [
 const getCategoriesValidation = [
   query('type')
     .optional()
-    .isIn(['income', 'expense'])
-    .withMessage('Type must be income or expense'),
+    .isIn(['income', 'expense', 'investment'])
+    .withMessage('Type must be income, expense, or investment'),
   handleValidationErrors
 ];
 

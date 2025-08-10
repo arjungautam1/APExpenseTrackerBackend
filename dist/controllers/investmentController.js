@@ -103,6 +103,12 @@ exports.getInvestment = getInvestment;
 const createInvestment = async (req, res) => {
     try {
         const userId = req.user.id;
+        // Debug logging
+        console.log('=== Investment Creation Debug ===');
+        console.log('Raw request body:', JSON.stringify(req.body, null, 2));
+        console.log('currentValue specifically:', req.body.currentValue);
+        console.log('currentValue type:', typeof req.body.currentValue);
+        console.log('===============================');
         const { name, type, amountInvested, currentValue, purchaseDate, quantity, symbol, platform } = req.body;
         const investment = new Investment_1.Investment({
             userId,
@@ -225,7 +231,17 @@ exports.deleteInvestment = deleteInvestment;
 const getInvestmentStats = async (req, res) => {
     try {
         const userId = req.user.id;
-        const investments = await Investment_1.Investment.find({ userId }).lean();
+        const { startDate, endDate } = req.query;
+        // Build query with date filters
+        const query = { userId };
+        if (startDate || endDate) {
+            query.purchaseDate = {};
+            if (startDate)
+                query.purchaseDate.$gte = new Date(startDate);
+            if (endDate)
+                query.purchaseDate.$lte = new Date(endDate);
+        }
+        const investments = await Investment_1.Investment.find(query).lean();
         const totalInvested = investments.reduce((sum, inv) => sum + inv.amountInvested, 0);
         const totalCurrentValue = investments.reduce((sum, inv) => sum + (inv.currentValue || inv.amountInvested), 0);
         const totalGainLoss = totalCurrentValue - totalInvested;

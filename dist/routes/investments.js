@@ -25,9 +25,6 @@ const createInvestmentValidation = [
     (0, express_validator_1.body)('amountInvested')
         .isFloat({ min: 0 })
         .withMessage('Amount invested must be a positive number'),
-    (0, express_validator_1.body)('currentValue')
-        .isFloat({ min: 0 })
-        .withMessage('Current value must be a positive number'),
     (0, express_validator_1.body)('purchaseDate')
         .isISO8601()
         .withMessage('Purchase date must be a valid ISO 8601 date'),

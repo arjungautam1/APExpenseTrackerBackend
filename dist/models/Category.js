@@ -44,7 +44,7 @@ const CategorySchema = new mongoose_1.Schema({
     type: {
         type: String,
         required: [true, 'Category type is required'],
-        enum: ['income', 'expense']
+        enum: ['income', 'expense', 'investment']
     },
     icon: {
         type: String,

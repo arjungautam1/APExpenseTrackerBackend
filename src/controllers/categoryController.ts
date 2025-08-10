@@ -16,7 +16,7 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
       ]
     };
 
-    if (type && ['income', 'expense'].includes(type)) {
+    if (type && ['income', 'expense', 'investment'].includes(type)) {
       query.type = type;
     }
 

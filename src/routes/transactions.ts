@@ -23,8 +23,8 @@ const createTransactionValidation = [
     .isFloat({ min: 0 })
     .withMessage('Amount must be a positive number'),
   body('type')
-    .isIn(['income', 'expense', 'transfer'])
-    .withMessage('Type must be income, expense, or transfer'),
+    .isIn(['income', 'expense', 'transfer', 'investment'])
+    .withMessage('Type must be income, expense, transfer, or investment'),
   body('categoryId')
     .isMongoId()
     .withMessage('Category ID must be valid'),
@@ -61,8 +61,8 @@ const updateTransactionValidation = [
     .withMessage('Amount must be a positive number'),
   body('type')
     .optional()
-    .isIn(['income', 'expense', 'transfer'])
-    .withMessage('Type must be income, expense, or transfer'),
+    .isIn(['income', 'expense', 'transfer', 'investment'])
+    .withMessage('Type must be income, expense, transfer, or investment'),
   body('categoryId')
     .optional()
     .isMongoId()
@@ -104,8 +104,8 @@ const getTransactionsValidation = [
     .withMessage('Limit must be between 1 and 100'),
   query('type')
     .optional()
-    .isIn(['income', 'expense', 'transfer'])
-    .withMessage('Type must be income, expense, or transfer'),
+    .isIn(['income', 'expense', 'transfer', 'investment'])
+    .withMessage('Type must be income, expense, transfer, or investment'),
   query('categoryId')
     .optional()
     .isMongoId()

@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICategory extends Document {
   name: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'investment';
   icon: string;
   color: string;
   userId?: mongoose.Types.ObjectId;
@@ -22,7 +22,7 @@ const CategorySchema: Schema = new Schema({
   type: {
     type: String,
     required: [true, 'Category type is required'],
-    enum: ['income', 'expense']
+    enum: ['income', 'expense', 'investment']
   },
   icon: {
     type: String,
