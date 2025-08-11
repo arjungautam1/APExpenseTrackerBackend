@@ -19,6 +19,7 @@ const categories_1 = __importDefault(require("./routes/categories"));
 const investments_1 = __importDefault(require("./routes/investments"));
 const loans_1 = __importDefault(require("./routes/loans"));
 const transfers_1 = __importDefault(require("./routes/transfers"));
+const monthlyExpenses_1 = __importDefault(require("./routes/monthlyExpenses"));
 const users_1 = __importDefault(require("./routes/users"));
 const ai_1 = __importDefault(require("./routes/ai"));
 // Load environment variables
@@ -58,6 +59,9 @@ app.use('/api/categories', categories_1.default);
 app.use('/api/investments', investments_1.default);
 app.use('/api/loans', loans_1.default);
 app.use('/api/transfers', transfers_1.default);
+console.log('Registering monthly expenses routes...');
+app.use('/api/monthly-expenses', monthlyExpenses_1.default);
+console.log('Monthly expenses routes registered successfully');
 // Settings & users endpoints
 app.use('/api/users', users_1.default);
 app.use('/api/settings', users_1.default);

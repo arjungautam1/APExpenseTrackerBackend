@@ -14,6 +14,7 @@ import categoryRoutes from './routes/categories';
 import investmentRoutes from './routes/investments';
 import loanRoutes from './routes/loans';
 import transferRoutes from './routes/transfers';
+import monthlyExpenseRoutes from './routes/monthlyExpenses';
 import userRoutes from './routes/users';
 import aiRoutes from './routes/ai';
 
@@ -59,6 +60,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/transfers', transferRoutes);
+console.log('Registering monthly expenses routes...');
+app.use('/api/monthly-expenses', monthlyExpenseRoutes);
+console.log('Monthly expenses routes registered successfully');
 // Settings & users endpoints
 app.use('/api/users', userRoutes);
 app.use('/api/settings', userRoutes);
