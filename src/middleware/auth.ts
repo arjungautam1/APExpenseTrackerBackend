@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
 import User, { IUser } from '../models/User';
+import { verifyToken } from '../utils/jwt';
 
 interface AuthenticatedRequest extends Request {
   user?: IUser;
@@ -11,22 +11,45 @@ export const protect = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  // Temporarily bypass JWT authentication
-  // TODO: Re-enable JWT authentication later
-  
-  // Create a mock user for development with a valid ObjectId
-  const mockUser = {
-    _id: new mongoose.Types.ObjectId('64a7b8c8d3e4f5a6b7c8d9e0'),
-    id: '64a7b8c8d3e4f5a6b7c8d9e0',
-    name: 'Test User',
-    email: 'test@example.com',
-    currency: 'USD',
-    timezone: 'UTC',
-    isVerified: true
-  } as IUser;
-  
-  req.user = mockUser;
-  next();
+  let token;
+
+  // Check for token in Authorization header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // Make sure token exists
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: 'Not authorized to access this route'
+    });
+    return;
+  }
+
+  try {
+    // Verify token
+    const decoded = verifyToken(token);
+
+    // Get user from database
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'No user found with this token'
+      });
+      return;
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: 'Not authorized to access this route'
+    });
+  }
 };
 
 // Declare the AuthenticatedRequest type for use in other files

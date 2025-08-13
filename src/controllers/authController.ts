@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
-import { verifyRefreshToken } from '../utils/jwt';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -28,9 +28,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       timezone
     });
 
-    // Create mock tokens for development
-    const token = 'mock-jwt-token';
-    const refreshToken = 'mock-refresh-token';
+    // Generate real JWT tokens
+    const token = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     res.status(201).json({
       success: true,
@@ -94,9 +94,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Create mock tokens for development
-    const token = 'mock-jwt-token';
-    const refreshToken = 'mock-refresh-token';
+    // Generate real JWT tokens
+    const token = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     res.json({
       success: true,
@@ -133,9 +133,12 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    console.log('Getting user data for:', (authUser as any)._id);
+
     let user = await User.findById((authUser as any)._id);
 
     if (!user) {
+      console.log('User not found, creating new user...');
       user = await User.findOneAndUpdate(
         { _id: (authUser as any)._id },
         {
@@ -159,6 +162,13 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    console.log('Returning user data:', {
+      id: user._id,
+      name: user.name,
+      currency: user.currency,
+      timezone: user.timezone
+    });
+
     res.json({
       success: true,
       data: {
@@ -174,6 +184,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: any) {
+    console.error('Error in getMe:', error);
     res.status(400).json({
       success: false,
       message: error.message || 'Failed to get user data'
@@ -209,9 +220,9 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Generate mock tokens for development
-    const newToken = 'mock-jwt-token';
-    const newRefreshToken = 'mock-refresh-token';
+    // Generate real JWT tokens
+    const newToken = generateToken({ id: user._id.toString(), email: user.email });
+    const newRefreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     res.json({
       success: true,

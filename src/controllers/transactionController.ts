@@ -19,7 +19,8 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
     const skip = (page - 1) * limit;
 
     // Build query
-    const query: any = { userId: req.user?.id };
+    const userId = req.user?.id || req.user?._id;
+    const query: any = { userId };
 
     if (type && ['income', 'expense', 'transfer', 'investment'].includes(type)) {
       query.type = type;
@@ -31,8 +32,16 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
 
     if (startDate || endDate) {
       query.date = {};
-      if (startDate) query.date.$gte = new Date(startDate);
-      if (endDate) query.date.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
     }
 
     // Get transactions with category details
@@ -306,8 +315,16 @@ export const getTransactionStats = async (req: Request, res: Response): Promise<
     const dateQuery: any = {};
     if (startDate || endDate) {
       dateQuery.date = {};
-      if (startDate) dateQuery.date.$gte = new Date(startDate);
-      if (endDate) dateQuery.date.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        dateQuery.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateQuery.date.$lte = end;
+      }
     }
 
     // Get income and expense totals
@@ -375,8 +392,16 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
     const dateQuery: any = {};
     if (startDate || endDate) {
       dateQuery.date = {};
-      if (startDate) dateQuery.date.$gte = new Date(startDate);
-      if (endDate) dateQuery.date.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        dateQuery.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateQuery.date.$lte = end;
+      }
     }
 
     // Get expense breakdown by category
@@ -422,7 +447,7 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
       }
     ]);
 
-    // Get total expenses for percentage calculation
+    // Get total expenses for percentage calculation  
     const totalExpenses = await Transaction.aggregate([
       {
         $match: {

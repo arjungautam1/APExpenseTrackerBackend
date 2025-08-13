@@ -12,7 +12,7 @@ interface AuthenticatedRequest extends Request {
 // Get all monthly expenses for a user
 export const getMonthlyExpenses = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = req.user?.id || 'test-user-id'; // Use default user ID for development
+    const userId = req.user?.id;
     console.log('Getting monthly expenses for user:', userId);
     
     // Always use mock data for now to test

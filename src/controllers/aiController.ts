@@ -1,12 +1,20 @@
 import { Request, Response } from 'express';
 import Groq from 'groq-sdk';
+import Category from '../models/Category';
 
 interface ScanBillRequest {
   imageBase64?: string; // data URL or raw base64
   imageUrl?: string;
 }
 
+interface AutoCategorizeRequest {
+  description: string;
+  amount?: number;
+  merchant?: string;
+}
+
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const AUTO_CATEGORIZE_MODEL = 'deepseek-r1-distill-llama-70b';
 
 export const scanBill = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -132,6 +140,176 @@ If uncertain, make your best guess and leave fields empty rather than prose.`;
     res.status(400).json({ 
       success: false, 
       message: error.message || 'Failed to scan bill',
+      details: error.toString()
+    });
+  }
+};
+
+export const autoCategorize = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { description, amount, merchant } = req.body as AutoCategorizeRequest;
+
+    console.log('Auto categorize request received:', { description, amount, merchant });
+
+    if (!description || description.trim().length === 0) {
+      res.status(400).json({ success: false, message: 'Description is required' });
+      return;
+    }
+
+    const apiKey = process.env.GROQ_TEXT;
+    if (!apiKey) {
+      console.error('GROQ_TEXT not configured');
+      res.status(500).json({ success: false, message: 'GROQ_TEXT is not configured' });
+      return;
+    }
+
+    console.log('Using GROQ_TEXT API key:', apiKey.substring(0, 10) + '...');
+
+    const groq = new Groq({ apiKey });
+
+    // Get all available categories from the database
+    const categories = await Category.find({
+      $or: [
+        { userId: req.user?.id },
+        { isDefault: true }
+      ]
+    }).sort({ name: 1 });
+
+    console.log('Available categories:', categories.map(c => ({ name: c.name, type: c.type })));
+
+    // Create category mapping for the AI
+    const categoryList = categories.map(cat => `${cat.name} (${cat.type})`).join(', ');
+    
+    const systemPrompt = `You are an AI assistant that automatically categorizes financial transactions based on their description.
+
+Available categories:
+${categoryList}
+
+Your task is to analyze the transaction description and determine:
+1. The most appropriate category from the list above
+2. Whether this is likely an income or expense transaction
+
+Rules:
+- For food-related transactions (coffee, restaurants, cafes, fast food), use "Food & Dining"
+- For grocery stores, supermarkets, food markets, use "Groceries"
+- For transportation (gas, parking, public transport, rideshare), use "Transportation"
+- For bills and utilities (electricity, water, internet, phone), use "Bills & Utilities"
+- For entertainment (movies, games, streaming), use "Entertainment"
+- For healthcare (doctor, pharmacy, medical), use "Healthcare"
+- For shopping (clothes, electronics, general shopping), use "Shopping"
+- For education (books, courses, tuition), use "Education"
+- For travel (hotels, flights, vacation), use "Travel"
+- For personal care (salon, spa, gym), use "Personal Care"
+- For home and garden (furniture, tools, plants), use "Home & Garden"
+- For gifts and donations (charity, gifts), use "Gifts & Donations"
+- For salary, wages, payments received, use "Salary"
+- For freelance work, use "Freelance"
+- For investment returns, dividends, use "Investment Returns"
+- For business income, use "Business Income"
+- If none of the above fit, use "Other Expenses" for expenses or "Other Income" for income
+
+Return ONLY a JSON object with these fields:
+{
+  "category_name": "exact category name from the list",
+  "transaction_type": "income" or "expense",
+  "confidence": "high", "medium", or "low"
+}
+
+Example for "coffee at starbucks":
+{
+  "category_name": "Food & Dining",
+  "transaction_type": "expense",
+  "confidence": "high"
+}
+
+Example for "salary deposit":
+{
+  "category_name": "Salary",
+  "transaction_type": "income",
+  "confidence": "high"
+}`;
+
+    const userPrompt = `Categorize this transaction: "${description}"${merchant ? ` (Merchant: ${merchant})` : ''}${amount ? ` (Amount: ${amount})` : ''}`;
+
+    console.log('Sending request to Groq with model:', AUTO_CATEGORIZE_MODEL);
+
+    const completion = await groq.chat.completions.create({
+      model: AUTO_CATEGORIZE_MODEL,
+      temperature: 0.6,
+      max_tokens: 4096,
+      top_p: 0.95,
+      stream: false,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+    });
+
+    const content = completion.choices?.[0]?.message?.content || '';
+    console.log('Groq response received:', content);
+
+    // Try to extract JSON payload
+    let parsed: any = null;
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('Successfully parsed JSON:', parsed);
+      } else {
+        console.log('No JSON found in response, using fallback');
+        parsed = {
+          category_name: 'Other Expenses',
+          transaction_type: 'expense',
+          confidence: 'low'
+        };
+      }
+    } catch (parseError) {
+      console.error('Failed to parse JSON from response:', parseError);
+      console.log('Raw content that failed to parse:', content);
+      parsed = {
+        category_name: 'Other Expenses',
+        transaction_type: 'expense',
+        confidence: 'low'
+      };
+    }
+
+    // Find the actual category from the database
+    const matchedCategory = categories.find(cat => 
+      cat.name.toLowerCase() === (parsed.category_name || '').toLowerCase()
+    );
+
+    if (!matchedCategory) {
+      console.log('Category not found, using fallback');
+      const fallbackCategory = categories.find(cat => 
+        cat.name.toLowerCase().includes('other') && 
+        cat.type === (parsed.transaction_type || 'expense')
+      ) || categories[0];
+
+      parsed.category_name = fallbackCategory?.name || 'Other Expenses';
+      parsed.confidence = 'low';
+    }
+
+    const responseData = {
+      categoryId: matchedCategory?._id || null,
+      categoryName: parsed.category_name,
+      transactionType: parsed.transaction_type,
+      confidence: parsed.confidence,
+      raw: content,
+      availableCategories: categories.map(cat => ({
+        id: cat._id,
+        name: cat.name,
+        type: cat.type
+      }))
+    };
+
+    console.log('Final response data:', responseData);
+    res.json({ success: true, message: 'Transaction categorized successfully', data: responseData });
+  } catch (error: any) {
+    console.error('Error in autoCategorize:', error);
+    console.error('Error stack:', error.stack);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Failed to categorize transaction',
       details: error.toString()
     });
   }

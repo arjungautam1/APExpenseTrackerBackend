@@ -66,7 +66,9 @@ console.log('Monthly expenses routes registered successfully');
 // Settings & users endpoints
 app.use('/api/users', userRoutes);
 app.use('/api/settings', userRoutes);
+console.log('Registering AI routes...');
 app.use('/api/ai', aiRoutes);
+console.log('AI routes registered successfully');
 
 // TODO: Add remaining route handlers
 // app.use('/api/users', userRoutes);
