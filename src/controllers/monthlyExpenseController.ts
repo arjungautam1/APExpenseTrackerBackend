@@ -18,7 +18,11 @@ export const getMonthlyExpenses = async (req: AuthenticatedRequest, res: Respons
     // Always use mock data for now to test
     console.log('Using mock data for monthly expenses');
     const userExpenses = mockMonthlyExpenses.filter(expense => expense.userId === userId);
-    res.json(userExpenses);
+    res.json({
+      success: true,
+      data: userExpenses,
+      message: 'Monthly expenses retrieved successfully'
+    });
   } catch (error) {
     console.error('Error fetching monthly expenses:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -41,7 +45,11 @@ export const getMonthlyExpensesByCategory = async (req: AuthenticatedRequest, re
       isActive: true 
     }).sort({ name: 1 });
 
-    res.json(expenses);
+    res.json({
+      success: true,
+      data: expenses,
+      message: 'Monthly expenses by category retrieved successfully'
+    });
   } catch (error) {
     console.error('Error fetching monthly expenses by category:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -79,7 +87,11 @@ export const createMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       nextDueDate
     });
 
-    res.status(201).json(monthlyExpense);
+    res.status(201).json({
+      success: true,
+      data: monthlyExpense,
+      message: 'Monthly expense created successfully'
+    });
   } catch (error) {
     console.error('Error creating monthly expense:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -119,7 +131,11 @@ export const updateMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       return res.status(404).json({ message: 'Monthly expense not found' });
     }
 
-    res.json(monthlyExpense);
+    res.json({
+      success: true,
+      data: monthlyExpense,
+      message: 'Monthly expense updated successfully'
+    });
   } catch (error) {
     console.error('Error updating monthly expense:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -146,7 +162,11 @@ export const deleteMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       return res.status(404).json({ message: 'Monthly expense not found' });
     }
 
-    res.json({ message: 'Monthly expense deleted successfully' });
+    res.json({
+      success: true,
+      data: { message: 'Monthly expense deleted successfully' },
+      message: 'Monthly expense deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting monthly expense:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -205,9 +225,13 @@ export const processMonthlyExpensePayment = async (req: AuthenticatedRequest, re
     });
 
     res.json({
-      message: 'Payment processed successfully',
-      transaction,
-      nextDueDate
+      success: true,
+      data: {
+        message: 'Payment processed successfully',
+        transaction,
+        nextDueDate
+      },
+      message: 'Payment processed successfully'
     });
   } catch (error) {
     console.error('Error processing monthly expense payment:', error);
@@ -226,7 +250,11 @@ export const getMonthlyExpensesSummary = async (req: AuthenticatedRequest, res: 
     
     // Always use mock data for now to avoid database issues
     console.log('Using mock summary data');
-    res.json(mockMonthlyExpensesSummary);
+    res.json({
+      success: true,
+      data: mockMonthlyExpensesSummary,
+      message: 'Monthly expenses summary retrieved successfully'
+    });
   } catch (error) {
     console.error('Error fetching monthly expenses summary:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -303,6 +303,40 @@ export const deleteTransaction = async (req: Request, res: Response): Promise<vo
   }
 };
 
+// @desc    Delete all transactions for user
+// @route   DELETE /api/transactions
+// @access  Private
+export const deleteAllTransactions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    
+    // Get count before deletion for response
+    const count = await Transaction.countDocuments({ userId });
+    
+    if (count === 0) {
+      res.status(404).json({
+        success: false,
+        message: 'No transactions found to delete'
+      });
+      return;
+    }
+
+    // Delete all transactions for the user
+    await Transaction.deleteMany({ userId });
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${count} transactions`,
+      data: { deletedCount: count }
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to delete all transactions'
+    });
+  }
+};
+
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
 // @access  Private
@@ -536,6 +570,94 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
     res.status(400).json({
       success: false,
       message: error.message || 'Failed to get expense breakdown'
+    });
+  }
+};
+
+export const getMonthlyTrends = async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    // Build date query
+    const dateQuery: any = {};
+    if (startDate && endDate) {
+      dateQuery.date = {
+        $gte: new Date(startDate as string),
+        $lte: new Date(endDate as string)
+      };
+    }
+
+    // Get monthly data for income, expenses, and investments
+    const monthlyData = await Transaction.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user?.id),
+          type: { $in: ['income', 'expense', 'investment'] },
+          ...dateQuery
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$date' },
+            month: { $month: '$date' },
+            type: '$type'
+          },
+          totalAmount: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Process the data to create monthly data points
+    const processedData = monthlyData.map(item => ({
+      year: item._id.year,
+      month: item._id.month,
+      type: item._id.type,
+      totalAmount: item.totalAmount,
+      count: item.count,
+      monthKey: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`
+    }));
+
+    // Group by month and type
+    const monthlyTrends = processedData.reduce((acc, item) => {
+      if (!acc[item.monthKey]) {
+        acc[item.monthKey] = {
+          month: item.monthKey,
+          income: 0,
+          expenses: 0,
+          investments: 0
+        };
+      }
+      
+      if (item.type === 'income') {
+        acc[item.monthKey].income = item.totalAmount;
+      } else if (item.type === 'expense') {
+        acc[item.monthKey].expenses = item.totalAmount;
+      } else if (item.type === 'investment') {
+        acc[item.monthKey].investments = item.totalAmount;
+      }
+      
+      return acc;
+    }, {} as any);
+
+    // Convert to array and sort
+    const result = Object.values(monthlyTrends).sort((a: any, b: any) => {
+      return a.month.localeCompare(b.month);
+    });
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error: any) {
+    console.error('Monthly trends error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to get monthly trends'
     });
   }
 };

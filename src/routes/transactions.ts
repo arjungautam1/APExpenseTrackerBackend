@@ -6,8 +6,10 @@ import {
   createTransaction,
   updateTransaction,
   deleteTransaction,
+  deleteAllTransactions,
   getTransactionStats,
-  getExpenseBreakdown
+  getExpenseBreakdown,
+  getMonthlyTrends
 } from '../controllers/transactionController';
 import { protect } from '../middleware/auth';
 import { handleValidationErrors } from '../middleware/validation';
@@ -124,10 +126,12 @@ const getTransactionsValidation = [
 // Routes
 router.get('/stats', getTransactionStats);
 router.get('/expense-breakdown', getExpenseBreakdown);
+router.get('/monthly-trends', getMonthlyTrends);
 router.get('/', getTransactionsValidation, getTransactions);
 router.get('/:id', getTransaction);
 router.post('/', createTransactionValidation, createTransaction);
 router.put('/:id', updateTransactionValidation, updateTransaction);
 router.delete('/:id', deleteTransaction);
+router.delete('/', deleteAllTransactions);
 
 export default router;
