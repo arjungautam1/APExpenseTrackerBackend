@@ -26,9 +26,9 @@ const cleanMerchantName = (merchant: string): string => {
   
   // Remove common suffixes and location information
   let cleaned = merchant
-    // Remove store numbers like #2435
+    // Remove store numbers like #2435, #09
     .replace(/#\d+/g, '')
-    // Remove location codes like TORONTO ON, VANCOUVER BC, etc.
+    // Remove location codes like TORONTO ON, VANCOUVER BC, WOODBRIDGE ON, etc.
     .replace(/\b[A-Z]{2,}\s+[A-Z]{2}\b/g, '')
     // Remove postal codes
     .replace(/\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b/g, '')
@@ -36,6 +36,25 @@ const cleanMerchantName = (merchant: string): string => {
     .replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '')
     // Remove common words that are not part of the business name
     .replace(/\b(INC|LLC|LTD|CORP|CORPORATION|CO|COMPANY)\b/gi, '')
+    // Remove specific patterns like 'RIDE SAT 12PM', 'RIDE SAT 2PM'
+    .replace(/\bRIDE\s+[A-Z]{3}\s+\d{1,2}[AP]M\b/gi, '')
+    // Remove transaction IDs like '2504022229'
+    .replace(/\b\d{10,}\b/g, '')
+    // Remove specific app identifiers like 'APPLISGIDGZC2RMRX'
+    .replace(/\b[A-Z0-9]{10,}\b/g, '')
+    // Remove percentage rates like '22.99%'
+    .replace(/\d+\.\d+%/g, '')
+    // Remove specific words like 'PAYMENTS', 'FEE', 'INTEREST'
+    .replace(/\b(PAYMENTS|FEE|INTEREST)\b/gi, '')
+    // Remove trailing slashes and special characters
+    .replace(/\/$/, '')
+    .replace(/^'/, '')
+    .replace(/'$/, '')
+    // Remove any remaining quotes and slashes
+    .replace(/'/g, '')
+    .replace(/\//g, '')
+    // Remove trailing dots and other punctuation
+    .replace(/\.$/, '')
     // Remove extra whitespace and trim
     .replace(/\s+/g, ' ')
     .trim();
@@ -525,9 +544,13 @@ export const extractBulkTransactions = async (req: Request, res: Response): Prom
         const rawMerchant = transaction.merchant || '';
         const cleanedMerchant = cleanMerchantName(rawMerchant);
         
+        // Clean the description field as well since it often contains the merchant name
+        const rawDescription = transaction.description || 'Unknown Transaction';
+        const cleanedDescription = cleanMerchantName(rawDescription);
+        
         const processed = {
           amount: Math.abs(transaction.amount || 0),
-          description: transaction.description || 'Unknown Transaction',
+          description: cleanedDescription,
           date: transaction.date || new Date().toISOString().split('T')[0],
           merchant: cleanedMerchant,
           categoryId: matchedCategory?._id || null,
