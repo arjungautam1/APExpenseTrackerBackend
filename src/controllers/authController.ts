@@ -29,8 +29,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     // Generate real JWT tokens
-    const token = generateToken({ id: user._id.toString(), email: user.email });
-    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const token = generateToken({ id: (user._id as any).toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: (user._id as any).toString(), email: user.email });
 
     res.status(201).json({
       success: true,
@@ -95,8 +95,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Generate real JWT tokens
-    const token = generateToken({ id: user._id.toString(), email: user.email });
-    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const token = generateToken({ id: (user._id as any).toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: (user._id as any).toString(), email: user.email });
 
     res.json({
       success: true,
@@ -221,8 +221,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     }
 
     // Generate real JWT tokens
-    const newToken = generateToken({ id: user._id.toString(), email: user.email });
-    const newRefreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const newToken = generateToken({ id: (user._id as any).toString(), email: user.email });
+    const newRefreshToken = generateRefreshToken({ id: (user._id as any).toString(), email: user.email });
 
     res.json({
       success: true,

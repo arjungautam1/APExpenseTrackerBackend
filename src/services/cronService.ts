@@ -58,7 +58,7 @@ export class CronService {
       return;
     }
 
-    cron.getTasks().forEach(task => task.stop());
+    cron.getTasks().forEach((task: any) => task.stop());
     this.isRunning = false;
     console.log('Cron service stopped');
   }
