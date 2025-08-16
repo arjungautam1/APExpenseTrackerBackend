@@ -21,6 +21,11 @@ import aiRoutes from './routes/ai';
 // Load environment variables
 dotenv.config();
 
+// Also load .env.local if it exists (for local development)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '.env.local', override: true });
+}
+
 const app = express();
 const PORT: number = Number(process.env.PORT) || 5051;
 // Ensure correct client IP when behind proxies (affects rate limiting)
@@ -35,8 +40,29 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet()); // Security headers
+
+// Dynamic CORS configuration
+const getCorsOrigin = () => {
+  if (process.env.CLIENT_URL) {
+    return process.env.CLIENT_URL;
+  }
+  
+  // For development, allow common localhost ports
+  if (process.env.NODE_ENV !== 'production') {
+    return [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173'
+    ];
+  }
+  
+  // Fallback for production
+  return 'https://yourdomain.com';
+};
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: getCorsOrigin(),
   credentials: true
 }));
 app.use(compression()); // Compress responses
