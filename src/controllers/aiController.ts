@@ -109,8 +109,10 @@ export const scanBill = async (req: Request, res: Response): Promise<void> => {
 IMPORTANT: Determine if this is INCOME (deposits, cheques, refunds, salary) or EXPENSE (bills, purchases, payments).
 
 For EXPENSE transactions, carefully categorize:
-- GROCERIES: Supermarkets, grocery stores, food markets (milk, bread, vegetables, household items)
 - FOOD & DINING: Restaurants, cafes, coffee shops, fast food, takeout, bars, pubs
+- SHOPPING: Supermarkets, grocery stores, retail stores, online shopping
+- TRANSPORTATION: Gas stations, public transit, ride-sharing, parking
+- BILLS & UTILITIES: Phone bills, internet, electricity, water, insurance
 
 Return STRICT JSON only with keys: 
 - amount (number)
@@ -120,11 +122,13 @@ Return STRICT JSON only with keys:
 - description (string)
 - transaction_type (string, either "income" or "expense")
 - category_name (string, based on transaction_type):
-  * For INCOME: Salary, Freelance, Investment Returns, Business Income, Rental Income, Bonus, Refund, Other Income
+  * For INCOME: Salary, Freelance, Investment Returns, Business, Gifts, Refunds, Other Income
   * For EXPENSE: 
-    - Groceries (for supermarkets, grocery stores)
     - Food & Dining (for restaurants, cafes, coffee shops)
-    - Transportation, Shopping, Bills & Utilities, Entertainment, Healthcare, Education, Travel, Personal Care, Home & Garden, Gifts & Donations, Other Expenses
+    - Shopping (for supermarkets, grocery stores, retail)
+    - Transportation (for gas, transit, ride-sharing)
+    - Bills & Utilities (for phone, internet, utilities)
+    - Entertainment, Healthcare, Education, Travel, Personal Care, Home & Garden, Gifts & Donations, Other Expenses
 
 Examples:
 - Cheque deposit, bank deposit, salary = INCOME
@@ -251,7 +255,7 @@ Your task is to analyze the transaction description and determine:
 
 Rules:
 - For food-related transactions (coffee, restaurants, cafes, fast food), use "Food & Dining"
-- For grocery stores, supermarkets, food markets, use "Groceries"
+- For grocery stores, supermarkets, food markets, retail stores, use "Shopping"
 - For transportation (gas, parking, public transport, rideshare), use "Transportation"
 - For bills and utilities (electricity, water, internet, phone, mobile carriers), use "Bills & Utilities"
 - For mobile phone carriers (Freedom Mobile, Rogers, Bell, Telus, Fido, Virgin, Koodo), use "Bills & Utilities"
@@ -266,7 +270,7 @@ Rules:
 - For salary, wages, payments received, use "Salary"
 - For freelance work, use "Freelance"
 - For investment returns, dividends, use "Investment Returns"
-- For business income, use "Business Income"
+- For business income, use "Business"
 - If none of the above fit, use "Other Expenses" for expenses or "Other Income" for income
 
 Return ONLY a JSON object with these fields:
@@ -426,7 +430,7 @@ export const extractBulkTransactions = async (req: Request, res: Response): Prom
     
     Rules for categorization:
     - For food-related transactions (coffee, restaurants, cafes, fast food), use "Food & Dining"
-    - For grocery stores, supermarkets, food markets, use "Groceries"
+    - For grocery stores, supermarkets, food markets, retail stores, use "Shopping"
     - For transportation (gas, parking, public transport, rideshare), use "Transportation"
     - For bills and utilities (electricity, water, internet, phone, mobile carriers), use "Bills & Utilities"
     - For mobile phone carriers (Freedom Mobile, Rogers, Bell, Telus, Fido, Virgin, Koodo), use "Bills & Utilities"
@@ -441,7 +445,7 @@ export const extractBulkTransactions = async (req: Request, res: Response): Prom
     - For salary, wages, payments received, use "Salary"
     - For freelance work, use "Freelance"
     - For investment returns, dividends, use "Investment Returns"
-    - For business income, use "Business Income"
+    - For business income, use "Business"
     - If none of the above fit, use "Other Expenses" for expenses or "Other Income" for income
     
     For merchant names, extract just the business name and remove store numbers, locations, etc.
