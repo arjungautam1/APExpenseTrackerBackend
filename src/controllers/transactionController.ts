@@ -573,7 +573,7 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
             }
           },
           {
-            $sort: { '_id.year': 1, '_id.month': 1 }
+            $sort: { '_id.year': -1, '_id.month': -1 }
           },
           {
             $limit: 5 // Last 5 months
@@ -644,7 +644,7 @@ export const getMonthlyTrends = async (req: Request, res: Response) => {
         }
       },
       {
-        $sort: { '_id.year': 1, '_id.month': 1 }
+        $sort: { '_id.year': -1, '_id.month': -1 }
       }
     ]);
 
@@ -680,9 +680,9 @@ export const getMonthlyTrends = async (req: Request, res: Response) => {
       return acc;
     }, {} as any);
 
-    // Convert to array and sort
+    // Convert to array and sort (most recent first)
     const result = Object.values(monthlyTrends).sort((a: any, b: any) => {
-      return a.month.localeCompare(b.month);
+      return b.month.localeCompare(a.month);
     });
 
     res.json({
