@@ -510,7 +510,7 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
         }
       },
       {
-        $sort: { totalAmount: -1 }
+        $sort: { lastTransaction: -1 }
       },
       {
         $limit: limit
