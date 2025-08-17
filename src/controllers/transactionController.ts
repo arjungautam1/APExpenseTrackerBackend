@@ -549,7 +549,7 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
       percentage: totalExpenseAmount > 0 ? (item.totalAmount / totalExpenseAmount) * 100 : 0
     }));
 
-    // Get monthly trend for top 3 categories
+    // Get monthly trend for top 3 categories (show last 5 months regardless of date filter)
     const topCategories = breakdownWithPercentage.slice(0, 3);
     const monthlyTrends = await Promise.all(
       topCategories.map(async (category) => {
@@ -558,8 +558,8 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
             $match: {
               userId: new mongoose.Types.ObjectId(req.user?.id),
               type: 'expense',
-              categoryId: category.categoryId,
-              ...dateQuery
+              categoryId: category.categoryId
+              // Note: Not using dateQuery here to show historical trends
             }
           },
           {
@@ -576,7 +576,7 @@ export const getExpenseBreakdown = async (req: Request, res: Response): Promise<
             $sort: { '_id.year': 1, '_id.month': 1 }
           },
           {
-            $limit: 6 // Last 6 months
+            $limit: 5 // Last 5 months
           }
         ]);
 
