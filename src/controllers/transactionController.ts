@@ -112,23 +112,59 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
 
     console.log('Validating category:', categoryId);
 
-    // Validate category exists and belongs to user or is default
-    const category = await Category.findOne({
-      _id: categoryId,
-      $or: [
-        { userId: req.user?.id },
-        { isDefault: true }
-      ]
-    });
-
-    console.log('Found category:', category);
-
-    if (!category) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid category'
+    let category;
+    
+    // If categoryId is provided, validate it exists
+    if (categoryId && categoryId.trim() !== '') {
+      category = await Category.findOne({
+        _id: categoryId,
+        $or: [
+          { userId: req.user?.id },
+          { isDefault: true }
+        ]
       });
-      return;
+
+      console.log('Found category:', category);
+
+      if (!category) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid category'
+        });
+        return;
+      }
+    } else {
+      // If no categoryId provided, find a default category for the transaction type
+      // First try to find an "Other" category
+      category = await Category.findOne({
+        type: type,
+        $or: [
+          { userId: req.user?.id },
+          { isDefault: true }
+        ],
+        name: { $regex: /other/i }
+      });
+
+      // If no "Other" category found, get the first available category of the correct type
+      if (!category) {
+        category = await Category.findOne({
+          type: type,
+          $or: [
+            { userId: req.user?.id },
+            { isDefault: true }
+          ]
+        });
+      }
+
+      console.log('Using default category:', category);
+
+      if (!category) {
+        res.status(400).json({
+          success: false,
+          message: `No categories found for transaction type '${type}'. Please create a category first.`
+        });
+        return;
+      }
     }
 
     // Validate transaction type matches category type
@@ -145,7 +181,7 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
       userId: req.user?.id,
       amount: parseFloat(amount),
       type,
-      categoryId,
+      categoryId: category._id, // Use the found category ID
       description,
       date: date ? new Date(date) : new Date(),
       location,
