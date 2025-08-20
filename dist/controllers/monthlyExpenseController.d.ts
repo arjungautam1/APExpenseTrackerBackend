@@ -9,5 +9,8 @@ export declare const updateMonthlyExpense: (req: AuthenticatedRequest, res: Resp
 export declare const deleteMonthlyExpense: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const processMonthlyExpensePayment: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getMonthlyExpensesSummary: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getMonthlyExpenseStats: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const markAsPaid: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const markAsUnpaid: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export {};
 //# sourceMappingURL=monthlyExpenseController.d.ts.map

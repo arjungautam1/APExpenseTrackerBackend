@@ -13,10 +13,8 @@ interface AuthenticatedRequest extends Request {
 export const getMonthlyExpenses = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    console.log('Getting monthly expenses for user:', userId);
     
     // Always use mock data for now to test
-    console.log('Using mock data for monthly expenses');
     const userExpenses = mockMonthlyExpenses.filter(expense => expense.userId === userId);
     res.json({
       success: true,
@@ -24,7 +22,6 @@ export const getMonthlyExpenses = async (req: AuthenticatedRequest, res: Respons
       message: 'Monthly expenses retrieved successfully'
     });
   } catch (error) {
-    console.error('Error fetching monthly expenses:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -51,7 +48,7 @@ export const getMonthlyExpensesByCategory = async (req: AuthenticatedRequest, re
       message: 'Monthly expenses by category retrieved successfully'
     });
   } catch (error) {
-    console.error('Error fetching monthly expenses by category:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -93,7 +90,7 @@ export const createMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       message: 'Monthly expense created successfully'
     });
   } catch (error) {
-    console.error('Error creating monthly expense:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -137,7 +134,7 @@ export const updateMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       message: 'Monthly expense updated successfully'
     });
   } catch (error) {
-    console.error('Error updating monthly expense:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -168,7 +165,7 @@ export const deleteMonthlyExpense = async (req: AuthenticatedRequest, res: Respo
       message: 'Monthly expense deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting monthly expense:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -234,29 +231,90 @@ export const processMonthlyExpensePayment = async (req: AuthenticatedRequest, re
       message: 'Payment processed successfully'
     });
   } catch (error) {
-    console.error('Error processing monthly expense payment:', error);
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 // Get monthly expenses summary
 export const getMonthlyExpensesSummary = async (req: AuthenticatedRequest, res: Response) => {
-  console.log('=== getMonthlyExpensesSummary called ===');
-  console.log('Request URL:', req.url);
-  console.log('Request method:', req.method);
-  
   try {
-    console.log('Getting monthly expenses summary');
-    
     // Always use mock data for now to avoid database issues
-    console.log('Using mock summary data');
     res.json({
       success: true,
       data: mockMonthlyExpensesSummary,
       message: 'Monthly expenses summary retrieved successfully'
     });
   } catch (error) {
-    console.error('Error fetching monthly expenses summary:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Alias for getMonthlyExpensesSummary
+export const getMonthlyExpenseStats = getMonthlyExpensesSummary;
+
+// Mark a monthly expense as paid
+export const markAsPaid = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const monthlyExpense = await MonthlyExpense.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        lastPaidDate: new Date(),
+        isPaid: true
+      },
+      { new: true }
+    );
+
+    if (!monthlyExpense) {
+      return res.status(404).json({ message: 'Monthly expense not found' });
+    }
+
+    res.json({
+      success: true,
+      data: monthlyExpense,
+      message: 'Monthly expense marked as paid'
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Mark a monthly expense as unpaid
+export const markAsUnpaid = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const monthlyExpense = await MonthlyExpense.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        lastPaidDate: null,
+        isPaid: false
+      },
+      { new: true }
+    );
+
+    if (!monthlyExpense) {
+      return res.status(404).json({ message: 'Monthly expense not found' });
+    }
+
+    res.json({
+      success: true,
+      data: monthlyExpense,
+      message: 'Monthly expense marked as unpaid'
+    });
+  } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 };

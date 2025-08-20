@@ -29,27 +29,35 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
     // Try to find an existing user; if not found (dev/mock), upsert one using current auth data
     let user = await User.findById((authUser as any)._id);
 
-    if (!user) {
-      user = await User.findOneAndUpdate(
-        { _id: (authUser as any)._id },
-        {
-          $setOnInsert: {
-            name: authUser.name || 'User',
-            email: authUser.email || 'user@example.com',
-            password: 'TempPass1!',
-            currency: authUser.currency || 'USD',
-            timezone: authUser.timezone || 'UTC',
-          },
+      if (!user) {
+    user = await User.findOneAndUpdate(
+      { _id: (authUser as any)._id },
+      {
+        $setOnInsert: {
+          name: authUser.name || 'User',
+          email: authUser.email || 'user@example.com',
+          password: 'TempPass1!',
+          currency: authUser.currency || 'USD',
+          timezone: authUser.timezone || 'UTC',
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
-    }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
 
-    res.json({
-      success: true,
-      message: 'Profile fetched successfully',
-      data: { user: toSafeUser(user) },
+  if (!user) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found and could not be created'
     });
+    return;
+  }
+
+  res.json({
+    success: true,
+    message: 'Profile fetched successfully',
+    data: { user: toSafeUser(user) },
+  });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message || 'Failed to fetch profile' });
   }

@@ -29,7 +29,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv_1.default.config({ path: '.env.local', override: true });
 }
 const app = (0, express_1.default)();
-const PORT = Number(process.env.PORT) || 8080;
+const PORT = Number(process.env.PORT) || 5051;
 // Ensure correct client IP when behind proxies (affects rate limiting)
 app.set('trust proxy', 1);
 // Rate limiting
@@ -45,6 +45,7 @@ const getCorsOrigin = () => {
     const allowedOrigins = [];
     // Always include production domain
     allowedOrigins.push('https://smartexpenseai.com');
+    allowedOrigins.push('https://smartexpenseai.com/');
     // Add CLIENT_URL from environment if specified
     if (process.env.CLIENT_URL) {
         allowedOrigins.push(process.env.CLIENT_URL);
@@ -53,7 +54,6 @@ const getCorsOrigin = () => {
     if (process.env.NODE_ENV !== 'production') {
         allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173');
     }
-    console.log('CORS allowed origins:', allowedOrigins);
     return allowedOrigins;
 };
 app.use((0, cors_1.default)({
@@ -79,15 +79,11 @@ app.use('/api/categories', categories_1.default);
 app.use('/api/investments', investments_1.default);
 app.use('/api/loans', loans_1.default);
 app.use('/api/transfers', transfers_1.default);
-console.log('Registering monthly expenses routes...');
 app.use('/api/monthly-expenses', monthlyExpenses_1.default);
-console.log('Monthly expenses routes registered successfully');
 // Settings & users endpoints
 app.use('/api/users', users_1.default);
 app.use('/api/settings', users_1.default);
-console.log('Registering AI routes...');
 app.use('/api/ai', ai_1.default);
-console.log('AI routes registered successfully');
 // TODO: Add remaining route handlers
 // app.use('/api/users', userRoutes);
 // app.use('/api/loans', loanRoutes);
@@ -102,12 +98,8 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
     try {
-        console.log('Starting server...');
-        console.log('Connecting to database...');
         await (0, database_1.connectDB)();
-        console.log('Seeding default categories...');
         await (0, seedDefaultCategories_1.seedDefaultCategories)();
-        console.log('Starting Express server...');
         const server = app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT}`);
             console.log(`Health check: http://localhost:${PORT}/api/health`);

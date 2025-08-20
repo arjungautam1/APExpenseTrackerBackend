@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMonthlyExpensesSummary = exports.processMonthlyExpensePayment = exports.deleteMonthlyExpense = exports.updateMonthlyExpense = exports.createMonthlyExpense = exports.getMonthlyExpensesByCategory = exports.getMonthlyExpenses = void 0;
+exports.markAsUnpaid = exports.markAsPaid = exports.getMonthlyExpenseStats = exports.getMonthlyExpensesSummary = exports.processMonthlyExpensePayment = exports.deleteMonthlyExpense = exports.updateMonthlyExpense = exports.createMonthlyExpense = exports.getMonthlyExpensesByCategory = exports.getMonthlyExpenses = void 0;
 const MonthlyExpense_1 = __importDefault(require("../models/MonthlyExpense"));
 const Transaction_1 = __importDefault(require("../models/Transaction"));
 const Category_1 = __importDefault(require("../models/Category"));
@@ -12,9 +12,7 @@ const mockDatabase_1 = require("../config/mockDatabase");
 const getMonthlyExpenses = async (req, res) => {
     try {
         const userId = req.user?.id;
-        console.log('Getting monthly expenses for user:', userId);
         // Always use mock data for now to test
-        console.log('Using mock data for monthly expenses');
         const userExpenses = mockDatabase_1.mockMonthlyExpenses.filter(expense => expense.userId === userId);
         res.json({
             success: true,
@@ -23,7 +21,6 @@ const getMonthlyExpenses = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error fetching monthly expenses:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -48,7 +45,6 @@ const getMonthlyExpensesByCategory = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error fetching monthly expenses by category:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -86,7 +82,6 @@ const createMonthlyExpense = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error creating monthly expense:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -120,7 +115,6 @@ const updateMonthlyExpense = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error updating monthly expense:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -144,7 +138,6 @@ const deleteMonthlyExpense = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error deleting monthly expense:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -203,20 +196,14 @@ const processMonthlyExpensePayment = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error processing monthly expense payment:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 exports.processMonthlyExpensePayment = processMonthlyExpensePayment;
 // Get monthly expenses summary
 const getMonthlyExpensesSummary = async (req, res) => {
-    console.log('=== getMonthlyExpensesSummary called ===');
-    console.log('Request URL:', req.url);
-    console.log('Request method:', req.method);
     try {
-        console.log('Getting monthly expenses summary');
         // Always use mock data for now to avoid database issues
-        console.log('Using mock summary data');
         res.json({
             success: true,
             data: mockDatabase_1.mockMonthlyExpensesSummary,
@@ -224,11 +211,64 @@ const getMonthlyExpensesSummary = async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error fetching monthly expenses summary:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
 exports.getMonthlyExpensesSummary = getMonthlyExpensesSummary;
+// Alias for getMonthlyExpensesSummary
+exports.getMonthlyExpenseStats = exports.getMonthlyExpensesSummary;
+// Mark a monthly expense as paid
+const markAsPaid = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const { id } = req.params;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const monthlyExpense = await MonthlyExpense_1.default.findOneAndUpdate({ _id: id, userId }, {
+            lastPaidDate: new Date(),
+            isPaid: true
+        }, { new: true });
+        if (!monthlyExpense) {
+            return res.status(404).json({ message: 'Monthly expense not found' });
+        }
+        res.json({
+            success: true,
+            data: monthlyExpense,
+            message: 'Monthly expense marked as paid'
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.markAsPaid = markAsPaid;
+// Mark a monthly expense as unpaid
+const markAsUnpaid = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const { id } = req.params;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const monthlyExpense = await MonthlyExpense_1.default.findOneAndUpdate({ _id: id, userId }, {
+            lastPaidDate: null,
+            isPaid: false
+        }, { new: true });
+        if (!monthlyExpense) {
+            return res.status(404).json({ message: 'Monthly expense not found' });
+        }
+        res.json({
+            success: true,
+            data: monthlyExpense,
+            message: 'Monthly expense marked as unpaid'
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.markAsUnpaid = markAsUnpaid;
 // Helper functions
 function getCategoryColor(category) {
     const colors = {
