@@ -43,22 +43,28 @@ app.use(helmet()); // Security headers
 
 // Dynamic CORS configuration
 const getCorsOrigin = () => {
+  const allowedOrigins = [];
+  
+  // Always include production domain
+  allowedOrigins.push('https://smartexpenseai.com');
+  
+  // Add CLIENT_URL from environment if specified
   if (process.env.CLIENT_URL) {
-    return process.env.CLIENT_URL;
+    allowedOrigins.push(process.env.CLIENT_URL);
   }
   
   // For development, allow common localhost ports
   if (process.env.NODE_ENV !== 'production') {
-    return [
+    allowedOrigins.push(
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173'
-    ];
+    );
   }
   
-  // Fallback for production
-  return 'https://yourdomain.com';
+  console.log('CORS allowed origins:', allowedOrigins);
+  return allowedOrigins;
 };
 
 app.use(cors({
