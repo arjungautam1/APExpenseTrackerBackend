@@ -29,7 +29,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv_1.default.config({ path: '.env.local', override: true });
 }
 const app = (0, express_1.default)();
-const PORT = Number(process.env.PORT) || 5051;
+const PORT = Number(process.env.PORT) || 8080;
 // Ensure correct client IP when behind proxies (affects rate limiting)
 app.set('trust proxy', 1);
 // Rate limiting

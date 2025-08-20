@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const app = express();
-const PORT: number = Number(process.env.PORT) || 5051;
+const PORT: number = Number(process.env.PORT) || 8080;
 // Ensure correct client IP when behind proxies (affects rate limiting)
 app.set('trust proxy', 1);
 
