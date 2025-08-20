@@ -46,7 +46,7 @@ const getCorsOrigin = () => {
   const allowedOrigins = [];
   
   // Always include production domain
-  allowedOrigins.push('https://smartexpenseai.com');
+  allowedOrigins.push('https://smartexpenseai.com/');
   
   // Add CLIENT_URL from environment if specified
   if (process.env.CLIENT_URL) {
