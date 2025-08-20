@@ -45,14 +45,6 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
       );
     }
 
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-      return;
-    }
-
     res.json({
       success: true,
       message: 'Profile fetched successfully',
@@ -73,9 +65,6 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     const { name, currency, timezone, avatar } = req.body as Partial<IUser> & { avatar?: string };
 
-    console.log('Updating profile for user:', (authUser as any)._id);
-    console.log('Update data:', { name, currency, timezone, avatar });
-
     const allowedCurrencies = ['USD', 'EUR', 'GBP', 'INR', 'NPR', 'CAD', 'AUD', 'JPY', 'CNY'];
     if (currency && !allowedCurrencies.includes(currency)) {
       res.status(400).json({ success: false, message: 'Invalid currency' });
@@ -87,8 +76,6 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     if (typeof currency === 'string') update.currency = currency;
     if (typeof timezone === 'string') update.timezone = timezone;
     if (typeof avatar === 'string') (update as any).avatar = avatar;
-
-    console.log('Final update object:', update);
 
     const user = await User.findByIdAndUpdate((authUser as any)._id, update, {
       upsert: true,
@@ -102,20 +89,12 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    console.log('Updated user:', {
-      id: user._id,
-      name: user.name,
-      currency: user.currency,
-      timezone: user.timezone
-    });
-
     res.json({
       success: true,
       message: 'Profile updated successfully',
       data: { user: toSafeUser(user) },
     });
   } catch (error: any) {
-    console.error('Error updating profile:', error);
     res.status(400).json({ success: false, message: error.message || 'Failed to update profile' });
   }
 };

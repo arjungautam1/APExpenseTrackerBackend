@@ -115,10 +115,12 @@ const getTransactionsValidation = [
 // Routes
 router.get('/stats', transactionController_1.getTransactionStats);
 router.get('/expense-breakdown', transactionController_1.getExpenseBreakdown);
+router.get('/monthly-trends', transactionController_1.getMonthlyTrends);
 router.get('/', getTransactionsValidation, transactionController_1.getTransactions);
 router.get('/:id', transactionController_1.getTransaction);
 router.post('/', createTransactionValidation, transactionController_1.createTransaction);
 router.put('/:id', updateTransactionValidation, transactionController_1.updateTransaction);
 router.delete('/:id', transactionController_1.deleteTransaction);
+router.delete('/', transactionController_1.deleteAllTransactions);
 exports.default = router;
 //# sourceMappingURL=transactions.js.map

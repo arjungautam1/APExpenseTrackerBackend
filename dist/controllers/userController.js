@@ -62,6 +62,8 @@ const updateProfile = async (req, res) => {
             return;
         }
         const { name, currency, timezone, avatar } = req.body;
+        console.log('Updating profile for user:', authUser._id);
+        console.log('Update data:', { name, currency, timezone, avatar });
         const allowedCurrencies = ['USD', 'EUR', 'GBP', 'INR', 'NPR', 'CAD', 'AUD', 'JPY', 'CNY'];
         if (currency && !allowedCurrencies.includes(currency)) {
             res.status(400).json({ success: false, message: 'Invalid currency' });
@@ -76,6 +78,7 @@ const updateProfile = async (req, res) => {
             update.timezone = timezone;
         if (typeof avatar === 'string')
             update.avatar = avatar;
+        console.log('Final update object:', update);
         const user = await User_1.default.findByIdAndUpdate(authUser._id, update, {
             upsert: true,
             new: true,
@@ -86,6 +89,12 @@ const updateProfile = async (req, res) => {
             res.status(404).json({ success: false, message: 'User not found' });
             return;
         }
+        console.log('Updated user:', {
+            id: user._id,
+            name: user.name,
+            currency: user.currency,
+            timezone: user.timezone
+        });
         res.json({
             success: true,
             message: 'Profile updated successfully',
@@ -93,6 +102,7 @@ const updateProfile = async (req, res) => {
         });
     }
     catch (error) {
+        console.error('Error updating profile:', error);
         res.status(400).json({ success: false, message: error.message || 'Failed to update profile' });
     }
 };

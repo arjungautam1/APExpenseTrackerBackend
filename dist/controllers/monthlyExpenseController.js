@@ -11,12 +11,16 @@ const mockDatabase_1 = require("../config/mockDatabase");
 // Get all monthly expenses for a user
 const getMonthlyExpenses = async (req, res) => {
     try {
-        const userId = req.user?.id || 'test-user-id'; // Use default user ID for development
+        const userId = req.user?.id;
         console.log('Getting monthly expenses for user:', userId);
         // Always use mock data for now to test
         console.log('Using mock data for monthly expenses');
         const userExpenses = mockDatabase_1.mockMonthlyExpenses.filter(expense => expense.userId === userId);
-        res.json(userExpenses);
+        res.json({
+            success: true,
+            data: userExpenses,
+            message: 'Monthly expenses retrieved successfully'
+        });
     }
     catch (error) {
         console.error('Error fetching monthly expenses:', error);
@@ -37,7 +41,11 @@ const getMonthlyExpensesByCategory = async (req, res) => {
             category,
             isActive: true
         }).sort({ name: 1 });
-        res.json(expenses);
+        res.json({
+            success: true,
+            data: expenses,
+            message: 'Monthly expenses by category retrieved successfully'
+        });
     }
     catch (error) {
         console.error('Error fetching monthly expenses by category:', error);
@@ -71,7 +79,11 @@ const createMonthlyExpense = async (req, res) => {
             tags: tags || [],
             nextDueDate
         });
-        res.status(201).json(monthlyExpense);
+        res.status(201).json({
+            success: true,
+            data: monthlyExpense,
+            message: 'Monthly expense created successfully'
+        });
     }
     catch (error) {
         console.error('Error creating monthly expense:', error);
@@ -101,7 +113,11 @@ const updateMonthlyExpense = async (req, res) => {
         if (!monthlyExpense) {
             return res.status(404).json({ message: 'Monthly expense not found' });
         }
-        res.json(monthlyExpense);
+        res.json({
+            success: true,
+            data: monthlyExpense,
+            message: 'Monthly expense updated successfully'
+        });
     }
     catch (error) {
         console.error('Error updating monthly expense:', error);
@@ -121,7 +137,11 @@ const deleteMonthlyExpense = async (req, res) => {
         if (!monthlyExpense) {
             return res.status(404).json({ message: 'Monthly expense not found' });
         }
-        res.json({ message: 'Monthly expense deleted successfully' });
+        res.json({
+            success: true,
+            data: { message: 'Monthly expense deleted successfully' },
+            message: 'Monthly expense deleted successfully'
+        });
     }
     catch (error) {
         console.error('Error deleting monthly expense:', error);
@@ -173,9 +193,13 @@ const processMonthlyExpensePayment = async (req, res) => {
             nextDueDate
         });
         res.json({
-            message: 'Payment processed successfully',
-            transaction,
-            nextDueDate
+            success: true,
+            data: {
+                message: 'Payment processed successfully',
+                transaction,
+                nextDueDate
+            },
+            message: 'Payment processed successfully'
         });
     }
     catch (error) {
@@ -193,7 +217,11 @@ const getMonthlyExpensesSummary = async (req, res) => {
         console.log('Getting monthly expenses summary');
         // Always use mock data for now to avoid database issues
         console.log('Using mock summary data');
-        res.json(mockDatabase_1.mockMonthlyExpensesSummary);
+        res.json({
+            success: true,
+            data: mockDatabase_1.mockMonthlyExpensesSummary,
+            message: 'Monthly expenses summary retrieved successfully'
+        });
     }
     catch (error) {
         console.error('Error fetching monthly expenses summary:', error);

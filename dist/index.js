@@ -24,8 +24,12 @@ const users_1 = __importDefault(require("./routes/users"));
 const ai_1 = __importDefault(require("./routes/ai"));
 // Load environment variables
 dotenv_1.default.config();
+// Also load .env.local if it exists (for local development)
+if (process.env.NODE_ENV !== 'production') {
+    dotenv_1.default.config({ path: '.env.local', override: true });
+}
 const app = (0, express_1.default)();
-const PORT = Number(process.env.PORT) || 5051;
+const PORT = Number(process.env.PORT) || 8080;
 // Ensure correct client IP when behind proxies (affects rate limiting)
 app.set('trust proxy', 1);
 // Rate limiting
@@ -36,8 +40,24 @@ const limiter = (0, express_rate_limit_1.default)({
 });
 // Middleware
 app.use((0, helmet_1.default)()); // Security headers
+// Dynamic CORS configuration
+const getCorsOrigin = () => {
+    const allowedOrigins = [];
+    // Always include production domain
+    allowedOrigins.push('https://smartexpenseai.com');
+    // Add CLIENT_URL from environment if specified
+    if (process.env.CLIENT_URL) {
+        allowedOrigins.push(process.env.CLIENT_URL);
+    }
+    // For development, allow common localhost ports
+    if (process.env.NODE_ENV !== 'production') {
+        allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173');
+    }
+    console.log('CORS allowed origins:', allowedOrigins);
+    return allowedOrigins;
+};
 app.use((0, cors_1.default)({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: getCorsOrigin(),
     credentials: true
 }));
 app.use((0, compression_1.default)()); // Compress responses
@@ -65,7 +85,9 @@ console.log('Monthly expenses routes registered successfully');
 // Settings & users endpoints
 app.use('/api/users', users_1.default);
 app.use('/api/settings', users_1.default);
+console.log('Registering AI routes...');
 app.use('/api/ai', ai_1.default);
+console.log('AI routes registered successfully');
 // TODO: Add remaining route handlers
 // app.use('/api/users', userRoutes);
 // app.use('/api/loans', loanRoutes);

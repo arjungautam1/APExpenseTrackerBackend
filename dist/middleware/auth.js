@@ -4,22 +4,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.protect = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
+const User_1 = __importDefault(require("../models/User"));
+const jwt_1 = require("../utils/jwt");
 const protect = async (req, res, next) => {
-    // Temporarily bypass JWT authentication
-    // TODO: Re-enable JWT authentication later
-    // Create a mock user for development with a valid ObjectId
-    const mockUser = {
-        _id: new mongoose_1.default.Types.ObjectId('64a7b8c8d3e4f5a6b7c8d9e0'),
-        id: '64a7b8c8d3e4f5a6b7c8d9e0',
-        name: 'Test User',
-        email: 'test@example.com',
-        currency: 'USD',
-        timezone: 'UTC',
-        isVerified: true
-    };
-    req.user = mockUser;
-    next();
+    let token;
+    // Check for token in Authorization header
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+    // Make sure token exists
+    if (!token) {
+        res.status(401).json({
+            success: false,
+            message: 'Not authorized to access this route'
+        });
+        return;
+    }
+    try {
+        // Verify token
+        const decoded = (0, jwt_1.verifyToken)(token);
+        // Get user from database
+        const user = await User_1.default.findById(decoded.id);
+        if (!user) {
+            res.status(401).json({
+                success: false,
+                message: 'No user found with this token'
+            });
+            return;
+        }
+        req.user = user;
+        next();
+    }
+    catch (error) {
+        res.status(401).json({
+            success: false,
+            message: 'Not authorized to access this route'
+        });
+    }
 };
 exports.protect = protect;
 //# sourceMappingURL=auth.js.map

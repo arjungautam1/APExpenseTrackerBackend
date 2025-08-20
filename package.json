@@ -1,7 +1,7 @@
 {
-  "name": "expense-tracker-server",
+  "name": "smart-expense-ai-server",
   "version": "1.0.0",
-  "description": "Backend API for expense tracker application",
+  "description": "Backend API for Smart Expense AI application",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

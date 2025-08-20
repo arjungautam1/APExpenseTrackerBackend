@@ -1,45 +1,60 @@
 import express from 'express';
+import { body, query } from 'express-validator';
 import { protect } from '../middleware/auth';
-import {
-  getMonthlyExpenses,
-  getMonthlyExpensesByCategory,
-  createMonthlyExpense,
-  updateMonthlyExpense,
+import { handleValidationErrors } from '../middleware/validation';
+import { 
+  getMonthlyExpenses, 
+  createMonthlyExpense, 
+  updateMonthlyExpense, 
   deleteMonthlyExpense,
-  processMonthlyExpensePayment,
-  getMonthlyExpensesSummary
+  getMonthlyExpenseStats,
+  markAsPaid,
+  markAsUnpaid
 } from '../controllers/monthlyExpenseController';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes (temporarily disabled for testing)
-// router.use(protect);
+router.use(protect);
 
-// Get all monthly expenses
-router.get('/', getMonthlyExpenses);
+const createValidation = [
+  body('name').isString().trim().notEmpty().withMessage('Name is required'),
+  body('amount').isFloat({ min: 0 }).withMessage('Amount must be positive'),
+  body('dueDate').isInt({ min: 1, max: 31 }).withMessage('Due date must be between 1 and 31'),
+  body('category').isString().trim().notEmpty().withMessage('Category is required'),
+  body('description').optional().isString().trim().withMessage('Description must be a string'),
+  body('autoDeduct').optional().isBoolean().withMessage('Auto deduct must be a boolean'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  handleValidationErrors
+];
 
-// Get monthly expenses summary
-router.get('/summary', getMonthlyExpensesSummary);
+const updateValidation = [
+  body('name').optional().isString().trim().notEmpty().withMessage('Name cannot be empty'),
+  body('amount').optional().isFloat({ min: 0 }).withMessage('Amount must be positive'),
+  body('dueDate').optional().isInt({ min: 1, max: 31 }).withMessage('Due date must be between 1 and 31'),
+  body('category').optional().isString().trim().notEmpty().withMessage('Category cannot be empty'),
+  body('description').optional().isString().trim().withMessage('Description must be a string'),
+  body('autoDeduct').optional().isBoolean().withMessage('Auto deduct must be a boolean'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  handleValidationErrors
+];
 
-// Test endpoint to verify routes are loaded
+const listValidation = [
+  query('month').optional().isInt({ min: 1, max: 12 }).withMessage('Month must be between 1 and 12'),
+  query('year').optional().isInt({ min: 2020, max: 2030 }).withMessage('Year must be between 2020 and 2030'),
+  query('isActive').optional().isBoolean().withMessage('Is active must be a boolean'),
+  handleValidationErrors
+];
+
 router.get('/test', (req, res) => {
-  console.log('Monthly expenses test endpoint called');
-  res.json({ message: 'Monthly expenses routes are working!', timestamp: new Date().toISOString() });
+  res.json({ message: 'Monthly expenses test endpoint working' });
 });
 
-// Get monthly expenses by category
-router.get('/category/:category', getMonthlyExpensesByCategory);
-
-// Create a new monthly expense
-router.post('/', createMonthlyExpense);
-
-// Update a monthly expense
-router.put('/:id', updateMonthlyExpense);
-
-// Delete a monthly expense
+router.get('/', listValidation, getMonthlyExpenses);
+router.get('/stats', getMonthlyExpenseStats);
+router.post('/', createValidation, createMonthlyExpense);
+router.put('/:id', updateValidation, updateMonthlyExpense);
 router.delete('/:id', deleteMonthlyExpense);
-
-// Process payment for a monthly expense
-router.post('/:id/pay', processMonthlyExpensePayment);
+router.patch('/:id/paid', markAsPaid);
+router.patch('/:id/unpaid', markAsUnpaid);
 
 export default router;
